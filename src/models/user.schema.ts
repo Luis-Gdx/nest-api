@@ -34,6 +34,7 @@ UserSchema.pre('save', async function (next) {
     const user = this as any;
     const hash = await bcrypt.hash(user.password, saltRounds);
     user.password = hash;
+    user.email = user.email.toLowerCase();
     next();
 });
 

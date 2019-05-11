@@ -1,15 +1,17 @@
-import { Body, Controller, Delete, Get, Param, Post, Put, Req, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, HttpStatus, Param, Post, Put, Req, Res, UseGuards } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
-import { Request } from 'express';
+import { Request, Response } from 'express';
 import { RolesGuard } from 'src/guards/roles.guard';
+import { AuthService } from '../auth/auth.service';
 import { Roles } from '../auth/roles.decorator';
-import { UserDto } from './users.dto';
+import { LoginUserDto, UserDto } from './users.dto';
 import { UsersService } from './users.service';
 
 @Controller('users')
 export class UsersController {
 
     constructor(
+        private authService: AuthService,
         private usersService: UsersService,
     ) { }
 
@@ -44,6 +46,29 @@ export class UsersController {
     @Delete(':id')
     async delete(@Param('id') id: string) {
         return await this.usersService.delete(id);
+    }
+
+    @Post('signin')
+    async register(@Body() userDto: UserDto) {
+        try {
+            const data = await this.authService.signIn(userDto);
+            return data;
+        } catch (error) {
+            return error;
+        }
+    }
+
+    @Post('login')
+    async login(@Body() loginUserDto: LoginUserDto, @Res() res: Response) {
+        try {
+            const { user, token } = await this.authService.login(loginUserDto);
+            if (!user) {
+                return res.status(HttpStatus.NOT_FOUND).json({ message: 'user not found' });
+            }
+            return res.status(HttpStatus.OK).json({ user, token });
+        } catch (error) {
+            return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json(error);
+        }
     }
 
 }

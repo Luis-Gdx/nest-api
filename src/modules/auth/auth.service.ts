@@ -4,6 +4,7 @@ import { InjectModel } from '@nestjs/mongoose';
 import * as bcrypt from 'bcrypt';
 import { Model } from 'mongoose';
 import { User } from 'src/types/user';
+import { LoginUserDto, UserDto } from '../users/users.dto';
 
 @Injectable()
 export class AuthService {
@@ -12,14 +13,15 @@ export class AuthService {
         private readonly jwtService: JwtService,
     ) { }
 
-    async signIn(): Promise<string> {
-        // In the real-world app you shouldn't expose this method publicly
-        // instead, return a token once you verify user credentials
-        const user: any = { email: 'user@email.com' };
-        return this.jwtService.sign(user);
+    async signIn(userDto: UserDto): Promise<{ user: User, token: string }> {
+        const user: User = (await new this.userModel(userDto).save()).toJSON();
+        delete user.password;
+        const token = this.jwtService.sign(user);
+        return { user, token };
     }
 
-    async login({ email, password }): Promise<any> {
+    async login({ email, password }: LoginUserDto): Promise<any> {
+        email = email.toLowerCase();
         let user = await this.userModel.findOne({ email }).select('+password').exec();
         if (!user) {
             return false;
