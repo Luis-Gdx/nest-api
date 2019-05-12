@@ -30,6 +30,13 @@ export class UsersController {
         return await this.usersService.findAll();
     }
 
+    @Get('get-token')
+    @UseGuards(AuthGuard())
+    async getToken(@Req() req: Request) {
+        const { user } = req as any;
+        return await this.authService.getToken(user.id);
+    }
+
     @Get(':id')
     @UseGuards(AuthGuard())
     @Roles('admin')

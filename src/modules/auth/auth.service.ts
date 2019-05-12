@@ -34,6 +34,15 @@ export class AuthService {
         }
     }
 
+    async getToken(id) {
+        try {
+            const user = (await this.userModel.findById(id)).toJSON();
+            return this.jwtService.sign(user);
+        } catch (error) {
+            throw error;
+        }
+    }
+
     async validateUser(payload: any): Promise<any> {
         return await this.getUserByEmail(payload.email);
     }
