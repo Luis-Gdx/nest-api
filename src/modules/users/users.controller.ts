@@ -34,7 +34,8 @@ export class UsersController {
     @UseGuards(AuthGuard())
     async getToken(@Req() req: Request) {
         const { user } = req as any;
-        return await this.authService.getToken(user.id);
+        const token = await this.authService.getToken(user.id);
+        return { token };
     }
 
     @Get(':id')
